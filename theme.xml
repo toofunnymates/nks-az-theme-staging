@@ -278,13 +278,36 @@
             return done();
           }).catch(function(){ return done(); });
         }).then(function(data){
-          // HLS (30s chunks) is faster but requires server-side segmentation.
-          // During Telegram throttling, HLS generation is slow, so we use
-          // MP4 with faststart as the primary for now. HLS will be enabled
-          // once the backend can generate segments reliably.
-          // TODO: Re-enable HLS when Telegram throttling clears.
+          // Prefer HLS (30s chunks, faster start) if available, fallback to MP4
+          // If HLS fails (e.g. server can't generate segments), fallback to MP4
+          var hlsUrl = data.hls_url;
           var mp4Url = data.stream_url;
-          video.src = mp4Url;
+          var hlsFailed = false;
+          function useMp4Fallback() {
+            if (hlsFailed) return;
+            hlsFailed = true;
+            if (window.nksHls) { try { window.nksHls.destroy(); } catch(e){} window.nksHls = null; }
+            video.src = mp4Url;
+          }
+          if (hlsUrl && window.Hls && window.Hls.isSupported()) {
+            if (window.nksHls) { try { window.nksHls.destroy(); } catch(e){} }
+            window.nksHls = new Hls({ maxBufferLength: 60 });
+            window.nksHls.on(Hls.Events.ERROR, function(event, errData) {
+              if (errData.fatal) { useMp4Fallback(); }
+            });
+            // If HLS doesn't start within 15s, fallback to MP4
+            setTimeout(function() {
+              if (video.readyState === 0 && !hlsFailed) { useMp4Fallback(); }
+            }, 15000);
+            window.nksHls.loadSource(hlsUrl);
+            window.nksHls.attachMedia(video);
+          } else if (hlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari native HLS
+            video.src = hlsUrl;
+            video.addEventListener('error', function() { useMp4Fallback(); }, { once: true });
+          } else {
+            video.src = mp4Url;
+          }
           if (window.Plyr) {
             if (plyrInstance) { plyrInstance.destroy(); }
             plyrInstance = new Plyr(video, { controls: ['play-large','play','progress','current-time','mute','volume','settings','fullscreen'], disableContextMenu: true });
