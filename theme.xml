@@ -278,20 +278,13 @@
             return done();
           }).catch(function(){ return done(); });
         }).then(function(data){
-          // Prefer HLS (30s chunks, faster start) if available, fallback to MP4
-          var hlsUrl = data.hls_url;
+          // HLS (30s chunks) is faster but requires server-side segmentation.
+          // During Telegram throttling, HLS generation is slow, so we use
+          // MP4 with faststart as the primary for now. HLS will be enabled
+          // once the backend can generate segments reliably.
+          // TODO: Re-enable HLS when Telegram throttling clears.
           var mp4Url = data.stream_url;
-          if (hlsUrl && window.Hls && window.Hls.isSupported()) {
-            if (window.nksHls) { try { window.nksHls.destroy(); } catch(e){} }
-            window.nksHls = new Hls({ maxBufferLength: 60 });
-            window.nksHls.loadSource(hlsUrl);
-            window.nksHls.attachMedia(video);
-          } else if (hlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Safari native HLS
-            video.src = hlsUrl;
-          } else {
-            video.src = mp4Url;
-          }
+          video.src = mp4Url;
           if (window.Plyr) {
             if (plyrInstance) { plyrInstance.destroy(); }
             plyrInstance = new Plyr(video, { controls: ['play-large','play','progress','current-time','mute','volume','settings','fullscreen'], disableContextMenu: true });
