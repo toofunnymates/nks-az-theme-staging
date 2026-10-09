@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<html b:css='false' b:js='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateUrl='nks-az-stream.xml' b:templateVersion='1.2.1' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta charset='UTF-8'/>
+  <meta content='width=device-width, initial-scale=1' name='viewport'/>
+  <title>NKS AZ — Watch your episodes</title>
+  <!-- was: <title><data:blog.pageTitle/></title> — Blogger was not substituting
+       the data tag, so the tab showed the literal code. Static title fixes it. -->
+
+  <b:skin><![CDATA[
+  /*
+   * NKS AZ — Netflix-style streaming theme v1.2.1
+   * Homepage: hero + "choose a series" picker + per-series episode rows,
+   * fed live from the backend /api/catalog.
+   * Static pages (e.g. Watch) render their own full-page UI; the theme
+   * stays out of the way and only provides the dark background.
+   */
+  ]]></b:skin>
+
+  <b:template-skin>
+    <b:variable default='1.2.1' name='theme.version' type='string' value='1.2.1'/>
+  </b:template-skin>
+
+  <style>
+  :root{
+    --nks-bg:#0b0b0f; --nks-card:#1a1a23;
+    --nks-text:#f2f2f5; --nks-dim:#a7a7b3;
+    --nks-accent:#e50914;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html,body{margin:0;padding:0}
+  body{background:var(--nks-bg);color:var(--nks-text);
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+
+  .nks-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:28px;
+    padding:14px 4vw;background:linear-gradient(180deg,rgba(0,0,0,.92),rgba(0,0,0,.55) 70%,transparent)}
+  .nks-brand{font-size:26px;font-weight:800;letter-spacing:2px;color:var(--nks-accent);white-space:nowrap}
+  .nks-nav-links{display:flex;gap:20px;font-size:14px;color:var(--nks-dim)}
+  .nks-nav-links a:hover{color:var(--nks-text)}
+
+  .nks-hero{position:relative;margin:-64px 0 0;min-height:56vh;display:flex;align-items:flex-end;
+    padding:0 4vw 44px;
+    background:linear-gradient(180deg,rgba(11,11,15,.25) 0%,rgba(11,11,15,.55) 55%,var(--nks-bg) 100%),
+               radial-gradient(1200px 500px at 20% 0%,#3b1d2b 0%,transparent 60%)}
+  .nks-hero-inner{max-width:640px}
+  .nks-hero-kicker{font-size:13px;letter-spacing:3px;color:var(--nks-accent);font-weight:700;margin-bottom:10px}
+  .nks-hero h1{font-size:clamp(34px,5vw,56px);margin:0 0 12px;line-height:1.05}
+  .nks-hero p{color:var(--nks-dim);font-size:16px;line-height:1.6;margin:0 0 22px}
+  .nks-btn{display:inline-flex;align-items:center;gap:8px;background:var(--nks-accent);color:#fff;
+    border:0;border-radius:6px;padding:12px 26px;font-size:15px;font-weight:700;cursor:pointer}
+  .nks-btn:hover{filter:brightness(1.12)}
+
+  .nks-section{padding:10px 4vw 10px}
+  .nks-section h2{font-size:20px;font-weight:700;margin:16px 0 4px}
+  .nks-section .nks-sub{color:var(--nks-dim);font-size:14px;margin:0 0 14px}
+
+  .nks-series-grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .nks-series-card{background:var(--nks-card);border-radius:14px;overflow:hidden;position:relative;
+    transition:transform .18s ease,box-shadow .18s ease;border:1px solid #26262f}
+  .nks-series-card:hover{transform:translateY(-4px) scale(1.015);box-shadow:0 16px 40px rgba(0,0,0,.55);z-index:2}
+  .nks-series-art{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+    font-size:44px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:1px;position:relative;overflow:hidden}
+  .nks-series-art img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+  .nks-series-art::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55) 100%)}
+  .nks-series-body{padding:16px 18px 18px}
+  .nks-series-body h3{font-size:18px;margin:0 0 6px}
+  .nks-series-body p{color:var(--nks-dim);font-size:13px;line-height:1.55;margin:0 0 10px}
+  .nks-count{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:var(--nks-accent);
+    border-radius:999px;padding:4px 12px}
+
+  .nks-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+  .nks-card{background:var(--nks-card);border-radius:10px;overflow:hidden;position:relative;
+    transition:transform .18s ease,box-shadow .18s ease}
+  .nks-card:hover{transform:scale(1.045);box-shadow:0 12px 32px rgba(0,0,0,.55);z-index:2}
+  .nks-poster{aspect-ratio:16/9;background:#23232e;display:flex;align-items:center;justify-content:center;
+    color:#8a8a96;font-size:13px;position:relative;overflow:hidden}
+  .nks-poster img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+  .nks-card-body{padding:12px 14px 14px}
+  .nks-card-body h3{font-size:15px;margin:0 0 6px}
+  .nks-card-meta{font-size:12px;color:var(--nks-dim)}
+  .nks-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:52px;height:52px;
+    border-radius:50%;background:rgba(229,9,20,.92);opacity:0;transition:opacity .18s;z-index:2}
+  .nks-play::after{content:'';position:absolute;top:50%;left:54%;transform:translate(-50%,-50%);
+    border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent}
+  .nks-card:hover .nks-play{opacity:1}
+  .nks-coming{color:var(--nks-dim);font-size:14px;padding:18px 0}
+
+  .nks-footer{border-top:1px solid #22222c;margin-top:40px;padding:28px 4vw 40px;
+    color:var(--nks-dim);font-size:13px}
+  .nks-footer .nks-brand{font-size:18px}
+  .nks-footer .nks-disclaimer{font-size:12px;line-height:1.6;max-width:720px}
+  .nks-loading{color:var(--nks-dim);padding:40px 4vw;text-align:center;font-size:15px}
+  .nks-page-body{min-height:60vh}
+
+  /* ---- Inline episode player (overlay) ---- */
+  .nks-player-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.95);display:none;overflow-y:auto}
+  .nks-player-overlay.open{display:block}
+  .nks-player-top{display:flex;align-items:center;gap:16px;padding:14px 4vw;position:sticky;top:0;background:rgba(0,0,0,.75);z-index:2}
+  .nks-player-close{background:none;border:1px solid #555;color:#fff;font-size:14px;padding:9px 18px;border-radius:8px;cursor:pointer}
+  .nks-player-close:hover{background:#222}
+  .nks-player-wrap{max-width:1100px;margin:0 auto;padding:18px 4vw 60px}
+  .nks-player-title{font-size:22px;margin:4px 0}
+  .nks-player-meta{color:var(--nks-dim);font-size:13px;margin-bottom:12px}
+  .nks-player-video{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  .nks-player-video video{width:100%;height:100%;display:block}
+  .nks-watermark{position:absolute;z-index:5;pointer-events:none;color:#fff;opacity:.28;font-size:13px;font-weight:600;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);transition:top 1.2s ease,left 1.2s ease}
+  .nks-player-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--nks-dim);background:#000;z-index:4}
+  .nks-spinner{width:44px;height:44px;border:4px solid #333;border-top-color:var(--nks-accent);border-radius:50%;animation:nks-spin 1s linear infinite}
+  @keyframes nks-spin{to{transform:rotate(360deg)}}
+  .nks-player-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .nks-dl-btn{background:var(--nks-accent);color:#fff;border:none;cursor:pointer;font-size:15px;font-weight:700;padding:12px 26px;border-radius:8px}
+  .nks-dl-btn:hover{background:#f6121d}
+  .nks-dl-btn:disabled{opacity:.5;cursor:wait}
+  .nks-player-err{background:#2a1215;border:1px solid #6b1f26;color:#ffb4b4;padding:14px 16px;border-radius:10px;margin-top:14px;display:none}
+  .nks-player-note{color:var(--nks-dim);font-size:12px;margin-top:12px;line-height:1.5}
+
+  .post-outer{margin:0}
+  .blog-pager,.post-footer,.comments{display:none}
+  @media (max-width:640px){
+    .nks-nav{gap:14px}
+    .nks-nav-links{gap:12px;font-size:13px}
+    .nks-hero{min-height:46vh}
+  }
+  </style>
+
+  <link rel='stylesheet' href='https://cdn.plyr.io/3.7.8/plyr.css'/>
+  <b:include data='blog' name='all-head-content'/>
+</head>
+
+<body>
+  <script>
+  var NKS_CONFIG = {
+    BACKEND_URL: 'https://nks-az-stream.onrender.com'
+  };
+  </script>
+
+  <b:if cond='data:blog.url == data:blog.homepageUrl'>
+    <nav class='nks-nav'>
+      <a class='nks-brand' expr:href='data:blog.homepageUrl'>NKS AZ</a>
+      <div class='nks-nav-links'>
+        <a expr:href='data:blog.homepageUrl'>Home</a>
+        <a href='#series'>Series</a>
+      </div>
+    </nav>
+
+    <section class='nks-hero'>
+      <div class='nks-hero-inner'>
+        <div class='nks-hero-kicker'>NKS AZ ORIGINALS</div>
+        <h1 id='nks-hero-title'>Pick your series.</h1>
+        <p id='nks-hero-desc'>Three series, one home. Choose what you are in the mood for and start watching.</p>
+        <a class='nks-btn' href='#series' id='nks-hero-play'>&#9654; Browse Series</a>
+      </div>
+    </section>
+
+    <main id='nks-home'>
+      <div class='nks-loading' id='nks-loading'>Loading series&#8230;</div>
+    </main>
+
+    <!-- Inline episode player overlay (no /p/ page needed) -->
+    <div class='nks-player-overlay' id='nks-player-overlay'>
+      <div class='nks-player-top'>
+        <button class='nks-player-close' id='nks-player-close'>&#8592; Back</button>
+        <span class='nks-brand' style='font-size:18px'>NKS AZ</span>
+      </div>
+      <div class='nks-player-wrap'>
+        <h2 class='nks-player-title' id='nks-ep-title'>Loading…</h2>
+        <div class='nks-player-meta' id='nks-ep-meta'></div>
+        <div class='nks-player-video' id='nks-player-video'>
+          <video id='nks-video' playsinline controls controlsList='nodownload' crossorigin='anonymous'></video>
+          <div class='nks-watermark' id='nks-watermark'>NKS AZ</div>
+          <div class='nks-player-loading' id='nks-player-loading'><div class='nks-spinner'></div><div>Connecting to stream… (first load can take ~30–60s)</div></div>
+        </div>
+        <div class='nks-player-err' id='nks-player-err'></div>
+        <div class='nks-player-actions'>
+          <button class='nks-dl-btn' id='nks-dl-btn' disabled>&#8681; Download episode</button>
+        </div>
+        <p class='nks-player-note'>Download opens a short link first, then your download starts. Links are personal and expire — please don't share them.</p>
+      </div>
+    </div>
+
+    <script src='https://cdn.plyr.io/3.7.8/plyr.js'></script>
+    <script>
+    (function(){
+      var cfg = window.NKS_CONFIG || {};
+      var home = document.getElementById('nks-home');
+      function esc(s){ return String(s == null ? '' : s); }
+
+      /* ---------- Inline player ---------- */
+      var overlay = document.getElementById('nks-player-overlay');
+      var video = document.getElementById('nks-video');
+      var plyrInstance = null;
+      var wmTimer = null;
+      var currentEpId = null;
+
+      function nksShowError(msg){
+        var box = document.getElementById('nks-player-err');
+        box.style.display = 'block';
+        box.textContent = msg;
+        document.getElementById('nks-player-loading').style.display = 'none';
+      }
+      function nksPlaceWatermark(){
+        var wm = document.getElementById('nks-watermark');
+        wm.textContent = 'NKS AZ • VZ-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+        wm.style.top = (5 + Math.random() * 80).toFixed(1) + '%';
+        wm.style.left = (5 + Math.random() * 70).toFixed(1) + '%';
+      }
+      function nksDownload(id){
+        var btn = document.getElementById('nks-dl-btn');
+        btn.disabled = true;
+        btn.textContent = 'Preparing…';
+        fetch(cfg.BACKEND_URL + '/api/dl-token/' + encodeURIComponent(id)).then(function(r){
+          if (!r.ok) { throw new Error('HTTP ' + r.status); }
+          return r.json();
+        }).then(function(data){
+          var url = data.short_url;
+          if (!url) { url = data.download_url; }
+          location.href = url;
+        }).catch(function(err){
+          nksShowError('Could not prepare download: ' + err.message);
+          btn.disabled = false;
+          btn.innerHTML = '&#8681; Download episode';
+        });
+      }
+      function openPlayer(id){
+        if (!id) { return; }
+        currentEpId = id;
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('nks-ep-title').textContent = 'Loading…';
+        document.getElementById('nks-ep-meta').textContent = '';
+        document.getElementById('nks-player-err').style.display = 'none';
+        document.getElementById('nks-player-loading').style.display = 'flex';
+        var dlBtn = document.getElementById('nks-dl-btn');
+        dlBtn.disabled = true;
+        dlBtn.innerHTML = '&#8681; Download episode';
+        dlBtn.onclick = function(){ nksDownload(currentEpId); };
+        nksPlaceWatermark();
+        if (wmTimer) { clearInterval(wmTimer); }
+        wmTimer = setInterval(nksPlaceWatermark, 8000);
+        fetch(cfg.BACKEND_URL + '/watch/' + encodeURIComponent(id)).then(function(r){
+          if (!r.ok) { throw new Error('Episode not found (HTTP ' + r.status + ').'); }
+          return r.json();
+        }).then(function(data){
+          document.getElementById('nks-ep-title').textContent = data.title || id;
+          var done = function(){ return data; };
+          return fetch(cfg.BACKEND_URL + '/api/catalog').then(function(x){ return x.json(); }).then(function(cat){
+            var found = null;
+            (cat.series || []).forEach(function(s){
+              (s.episodes || []).forEach(function(e){ if (e.id === id) { found = e; } });
+            });
+            if (found) {
+              document.getElementById('nks-ep-meta').textContent = 'Season ' + found.season + ' • Episode ' + found.episode;
+            }
+            return done();
+          }).catch(function(){ return done(); });
+        }).then(function(data){
+          video.src = data.stream_url;
+          if (window.Plyr) {
+            if (plyrInstance) { plyrInstance.destroy(); }
+            plyrInstance = new Plyr(video, { controls: ['play-large','play','progress','current-time','mute','volume','settings','fullscreen'], disableContextMenu: true });
+          }
+          video.addEventListener('playing', function(){ document.getElementById('nks-player-loading').style.display = 'none'; }, { once:true });
+          video.addEventListener('error', function(){ nksShowError('Stream failed to load. Please close and try again.'); });
+          document.getElementById('nks-dl-btn').disabled = false;
+        }).catch(function(err){
+          nksShowError('Could not load this episode: ' + err.message);
+        });
+      }
+      function closePlayer(){
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        if (wmTimer) { clearInterval(wmTimer); wmTimer = null; }
+        try { video.pause(); } catch (e) {}
+        video.removeAttribute('src');
+        video.load();
+        if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+        currentEpId = null;
+      }
+      document.getElementById('nks-player-close').addEventListener('click', closePlayer);
+      document.getElementById('nks-player-video').addEventListener('contextmenu', function(e){ e.preventDefault(); });
+      /* Episode card clicks (cards are rendered dynamically below) */
+      home.addEventListener('click', function(ev){
+        var t = ev.target;
+        var a = null;
+        if (t.closest) { a = t.closest('a.nks-card'); }
+        if (a) {
+          ev.preventDefault();
+          openPlayer(a.getAttribute('data-ep'));
+        }
+      });
+
+      fetch(cfg.BACKEND_URL + '/api/catalog').then(function(r){return r.json();}).then(function(cat){
+        var series = cat.series || [];
+        if (!series.length) { home.innerHTML = '<div class="nks-loading">Nothing here yet — check back soon.</div>'; return; }
+        var html = '';
+        html += '<section class="nks-section" id="series"><h2>Choose a series</h2>' +
+                '<p class="nks-sub">What are you in the mood for?</p><div class="nks-series-grid">';
+        series.forEach(function(s, i){
+          var n = (s.episodes || []).length;
+          var art = s.poster_url
+            ? '<img src="' + esc(s.poster_url) + '" alt=""/>'
+            : esc((s.title || '?').charAt(0).toUpperCase());
+          var bg = 'background:linear-gradient(135deg,' +
+            ['#5a2b8f,#2e90de', '#8f2b4a,#e50914', '#0f6b5c,#2e90de'][i % 3] + ')';
+          html += '<a class="nks-series-card" href="#series-' + esc(s.id) + '">' +
+                  '<div class="nks-series-art" style="' + bg + '">' + art + '</div>' +
+                  '<div class="nks-series-body"><h3></h3><p></p>' +
+                  '<span class="nks-count">' + n + (n === 1 ? ' episode' : ' episodes') + '</span></div></a>';
+        });
+        html += '</div></section>';
+        series.forEach(function(s){
+          var eps = s.episodes || [];
+          html += '<section class="nks-section" id="series-' + esc(s.id) + '"><h2></h2>';
+          if (s.description) html += '<p class="nks-sub"></p>';
+          if (!eps.length) {
+            html += '<div class="nks-coming">Episodes coming soon.</div>';
+          } else {
+            html += '<div class="nks-grid">';
+            eps.forEach(function(e){
+              var poster = e.poster_url ? '<img src="' + esc(e.poster_url) + '" alt=""/>' : '<span>No poster</span>';
+              html += '<a class="nks-card" href="#watch" data-ep="' + esc(e.id) + '">' +
+                      '<div class="nks-poster">' + poster + '<div class="nks-play"></div></div>' +
+                      '<div class="nks-card-body"><h3></h3>' +
+                      '<div class="nks-card-meta">S' + esc(e.season) + ' &#183; E' + esc(e.episode) + '</div></div></a>';
+            });
+            html += '</div>';
+          }
+          html += '</section>';
+        });
+        home.innerHTML = html;
+        var si = 0;
+        series.forEach(function(s){
+          var card = home.querySelectorAll('.nks-series-card')[si];
+          card.querySelector('h3').textContent = s.title || 'Untitled series';
+          card.querySelector('p').textContent = s.description || '';
+          var sec = document.getElementById('series-' + s.id);
+          sec.querySelector('h2').textContent = s.title || 'Untitled series';
+          if (s.description) sec.querySelector('.nks-sub').textContent = s.description;
+          var cards = sec.querySelectorAll('.nks-card');
+          (s.episodes || []).forEach(function(e, j){
+            cards[j].querySelector('h3').textContent = e.title || 'Untitled';
+          });
+          si++;
+        });
+        var first = null;
+        series.forEach(function(s){ var eps = s.episodes || []; if (!first) { if (eps.length) { first = eps[0]; } } });
+        if (first) {
+          document.getElementById('nks-hero-title').textContent = first.title;
+          document.getElementById('nks-hero-desc').textContent = first.description || '';
+          document.getElementById('nks-hero-play').innerHTML = '&#9654; Play Now';
+          document.getElementById('nks-hero-play').addEventListener('click', function(ev){
+            ev.preventDefault();
+            openPlayer(first.id);
+          });
+        }
+      }).catch(function(){
+        home.innerHTML = '<div class="nks-loading">Could not reach the streaming server — it may be waking up. Try again in a minute.</div>';
+      });
+    })();
+    </script>
+  </b:if>
+
+  <b:section class='main' name='Main' showaddelement='no'>
+    <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true'>
+      <b:includable id='main' var='top'>
+        <b:if cond='data:blog.url != data:blog.homepageUrl'>
+          <b:loop values='data:posts' var='post'>
+            <div class='nks-page-body'><data:post.body/></div>
+          </b:loop>
+        </b:if>
+      </b:includable>
+    </b:widget>
+  </b:section>
+
+  <footer class='nks-footer'>
+    <div class='nks-brand'>NKS AZ</div>
+    <p class='nks-disclaimer'><b>Disclaimer:</b> All files are hosted on third-party servers.
+    NKS AZ does not host any files on its own servers &#8212; we only index content that is
+    already available on the internet. For any content removal request, please email us at
+    <a href='mailto:nksaz2511@gmail.com'>nksaz2511@gmail.com</a>.</p>
+    <p>&#169; <data:blog.title/> &#8212; personal streaming.</p>
+  </footer>
+</body>
+</html>
