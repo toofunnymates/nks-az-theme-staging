@@ -192,6 +192,7 @@
     </div>
 
     <script src='https://cdn.plyr.io/3.7.8/plyr.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js'></script>
     <script>
     (function(){
       var cfg = window.NKS_CONFIG || {};
@@ -277,7 +278,20 @@
             return done();
           }).catch(function(){ return done(); });
         }).then(function(data){
-          video.src = data.stream_url;
+          // Prefer HLS (30s chunks, faster start) if available, fallback to MP4
+          var hlsUrl = data.hls_url;
+          var mp4Url = data.stream_url;
+          if (hlsUrl && window.Hls && window.Hls.isSupported()) {
+            if (window.nksHls) { try { window.nksHls.destroy(); } catch(e){} }
+            window.nksHls = new Hls({ maxBufferLength: 60 });
+            window.nksHls.loadSource(hlsUrl);
+            window.nksHls.attachMedia(video);
+          } else if (hlsUrl && video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Safari native HLS
+            video.src = hlsUrl;
+          } else {
+            video.src = mp4Url;
+          }
           if (window.Plyr) {
             if (plyrInstance) { plyrInstance.destroy(); }
             plyrInstance = new Plyr(video, { controls: ['play-large','play','progress','current-time','mute','volume','settings','fullscreen'], disableContextMenu: true });
@@ -297,6 +311,7 @@
         video.removeAttribute('src');
         video.load();
         if (plyrInstance) { plyrInstance.destroy(); plyrInstance = null; }
+        if (window.nksHls) { try { window.nksHls.destroy(); } catch(e){} window.nksHls = null; }
         currentEpId = null;
       }
       document.getElementById('nks-player-close').addEventListener('click', closePlayer);
