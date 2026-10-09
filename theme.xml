@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<html b:css='false' b:js='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateUrl='nks-az-stream.xml' b:templateVersion='1.2.1' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<html b:css='false' b:js='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateUrl='nks-az-stream.xml' b:templateVersion='1.3.0' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
 <head>
   <meta charset='UTF-8'/>
   <meta content='width=device-width, initial-scale=1' name='viewport'/>
@@ -9,7 +9,7 @@
 
   <b:skin><![CDATA[
   /*
-   * NKS AZ — Netflix-style streaming theme v1.2.1
+   * NKS AZ — Netflix-style streaming theme v1.3.0
    * Homepage: hero + "choose a series" picker + per-series episode rows,
    * fed live from the backend /api/catalog.
    * Static pages (e.g. Watch) render their own full-page UI; the theme
@@ -18,7 +18,7 @@
   ]]></b:skin>
 
   <b:template-skin>
-    <b:variable default='1.2.1' name='theme.version' type='string' value='1.2.1'/>
+    <b:variable default='1.3.0' name='theme.version' type='string' value='1.2.1'/>
   </b:template-skin>
 
   <style>
